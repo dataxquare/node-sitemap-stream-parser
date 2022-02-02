@@ -17,31 +17,28 @@ program
       wstream = fs.createWriteStream(program.outfile);
     }
 
-    var urlOut = function(url, sitemap) {
-      if (wstream) {
-        wstream.write(url + '\n');
-      } else {
-        console.log(url);
-      }
-    },
-    done = function(err, sitemaps) {
-      if (wstream) {
-        wstream.end();
-      }
+    var urlOut = function (url, sitemap) {
+        if (wstream) {
+          wstream.write(url + "\n");
+        }
 
-      if (err) {
-        console.error(new Error(err));
-      } else if (sitemaps && program.verbose) {
-        console.error('Parsed sitemaps: ' + sitemaps);
-      }
-    };
+        if (!wstream || program.verbose) {
+          console.log(url);
+        }
+      },
+      done = function (err, sitemaps) {
+        if (wstream) {
+          wstream.end();
+        }
 
-    sitemaps.sitemapsInRobots(base + '/robots.txt', function(err, urls) {
-      if (!urls || urls.length < 1) {
-        urls = [base + '/sitemap.xml'];
-      }
-      sitemaps.parseSitemaps(urls, urlOut, done);
-    });
+        if (err) {
+          console.error(new Error(err));
+        } else if (sitemaps && program.verbose) {
+          console.error("Parsed sitemaps: " + sitemaps);
+        }
+      };
+
+    sitemaps.parseSitemaps(base, urlOut, done);
   })
   .parse(process.argv);
 
