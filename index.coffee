@@ -1,4 +1,4 @@
-request = require 'request'
+got = require 'got'
 sax = require 'sax'
 async = require 'async'
 zlib = require 'zlib'
@@ -9,22 +9,24 @@ headers =
 agentOptions =
 	keepAlive: true
 	gzip: true
-request = request.defaults {headers, agentOptions, timeout: 60000}
+got = got.extend {headers, agentOptions, timeout: 60000}
 
 class SitemapParser
-	constructor: (@url_cb, @sitemap_cb) ->
+	constructor: (@url_cb, @sitemap_cb, @options) ->
 		@visited_sitemaps = {}
+		if @options
+			got = got.extend @options
 
 	_download: (url, parserStream, done) ->
 
 		if url.lastIndexOf('.gz') is url.length - 3
 			unzip = zlib.createGzip()
-			request.get({url, encoding: null}).pipe(unzip).pipe(parserStream)
+			got.stream({url, responseType: 'buffer'}).pipe(unzip).pipe(parserStream)
 		else
-			stream = request.get({url, gzip:true})
+			stream = got.stream({url, gzip:true})
 			stream.on 'error', (err) =>
 				done err
-			return stream.pipe(parserStream)
+			return stream.pipe(parserStream)		
 
 	parse: (url, done) =>
 		isURLSet = false
@@ -80,7 +82,7 @@ exports.parseSitemapsPromise = (urls, url_cb, sitemap_test) ->
 		exports.parseSitemaps(urls, url_cb, sitemap_test, resolve)
 
 exports.sitemapsInRobots = (url, cb) ->
-	request.get url, (err, res, body) ->
+	got.get url, (err, res, body) ->
 		return cb err if err
 		return cb "statusCode: #{res.statusCode}" if res.statusCode isnt 200
 		matches = []
