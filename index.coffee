@@ -57,29 +57,31 @@ class SitemapParser
 
 		@_download url, parserStream, done
 
-exports.parseSitemap = (url, url_cb, sitemap_cb, done) ->
-	parser = new SitemapParser url_cb, sitemap_cb
+exports.parseSitemap = (url, url_cb, sitemap_cb, done, options) ->
+	parser = new SitemapParser url_cb, sitemap_cb, options
 	parser.parse url, done	
 
-exports.parseSitemaps = (urls, url_cb, sitemap_test, done) ->
+exports.parseSitemaps = (urls, url_cb, sitemap_test, done, options) ->
 	unless done
 		done = sitemap_test
 		sitemap_test = undefined
 
 	urls = [urls] unless urls instanceof Array
 
-	parser = new SitemapParser url_cb, (sitemap) ->
+	sitemap_cb = (sitemap) ->
 		should_push = if sitemap_test then sitemap_test(sitemap) else true
 		queue.push sitemap if should_push
+
+	parser = new SitemapParser url_cb, sitemap_cb, options
 
 	queue = async.queue parser.parse, 4
 	queue.drain = () ->
 		done null, Object.keys(parser.visited_sitemaps)
 	queue.push urls
 
-exports.parseSitemapsPromise = (urls, url_cb, sitemap_test) ->
+exports.parseSitemapsPromise = (urls, url_cb, sitemap_test, options) ->
 	new Promise (resolve) ->
-		exports.parseSitemaps(urls, url_cb, sitemap_test, resolve)
+		exports.parseSitemaps(urls, url_cb, sitemap_test, resolve, options)
 
 exports.sitemapsInRobots = (url, cb) ->
 	got.get url, (err, res, body) ->
