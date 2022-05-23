@@ -21,7 +21,10 @@ class SitemapParser
 
 		if url.lastIndexOf('.gz') is url.length - 3
 			unzip = zlib.createGunzip()
-			got.stream({url, responseType: 'buffer'}).pipe(unzip).pipe(parserStream)
+			stream = got.stream({url, responseType: 'buffer'})
+			stream.on 'error', (err) =>
+				done err
+			return stream.pipe(unzip).pipe(parserStream)
 		else
 			stream = got.stream({url, gzip:true})
 			stream.on 'error', (err) =>
