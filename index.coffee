@@ -17,18 +17,18 @@ class SitemapParser
 		if @options
 			got = got.extend @options
 
-	_download: (url, parserStream, done) ->
+	_download: (url, parserStream, error_cb) ->
 
 		if url.lastIndexOf('.gz') is url.length - 3
 			unzip = zlib.createGunzip()
 			stream = got.stream({url, responseType: 'buffer'})
 			stream.on 'error', (err) =>
-				done err
+				error_cb err
 			return stream.pipe(unzip).pipe(parserStream)
 		else
 			stream = got.stream({url, gzip:true})
 			stream.on 'error', (err) =>
-				done err
+				error_cb err
 			return stream.pipe(parserStream)		
 
 	parse: (url, done) =>
@@ -44,6 +44,7 @@ class SitemapParser
 			isURLSet = true if node.name is 'urlset'
 			isSitemapIndex = true if node.name is 'sitemapindex'
 		parserStream.on 'error', (err) =>
+			@url_cb null, url, err
 			done err
 		parserStream.on 'text', (text) =>
 			text = urlParser.resolve url, text
@@ -58,7 +59,9 @@ class SitemapParser
 		parserStream.on 'end', () =>
 			done null
 
-		@_download url, parserStream, done
+		@_download url, parserStream, (err) =>
+			@url_cb null, url, err
+			done err
 
 exports.parseSitemap = (url, url_cb, sitemap_cb, done, options) ->
 	parser = new SitemapParser url_cb, sitemap_cb, options
