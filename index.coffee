@@ -20,17 +20,24 @@ class SitemapParser
 	_download: (url, parserStream, error_cb) ->
 
 		if url.lastIndexOf('.gz') is url.length - 3
-			unzip = zlib.createGunzip()
 			stream = got.stream({url, responseType: 'buffer'})
-			stream.on 'error', (err) =>
-				error_cb err
-			return stream.pipe(unzip).pipe(parserStream)
+			unzip = zlib.createGunzip()
+			finalStream = stream.pipe(unzip).pipe(parserStream)
+
+			stream.on 'error', error_cb
+			unzip.on 'error', error_cb
+			finalStream.on 'error', error_cb
+	
+			return finalStream
 		else
 			stream = got.stream({url, gzip:true})
-			stream.on 'error', (err) =>
-				error_cb err
-			return stream.pipe(parserStream)		
+			finalStream = stream.pipe(parserStream)
+			
+			stream.on 'error', error_cb
+			finalStream.on 'error', error_cb
 
+			return finalStream		
+			
 	parse: (url, done) =>
 		isURLSet = false
 		isSitemapIndex = false
