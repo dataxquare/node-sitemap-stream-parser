@@ -3,9 +3,13 @@ sax = require 'sax'
 async = require 'async'
 zlib = require 'zlib'
 urlParser = require 'url'
+UserAgent = require 'user-agents'
+
+
+userAgent = new UserAgent [/Chrome/, { platform: 'Win32' }]
 
 headers =
-	'user-agent': process.env.USER_AGENT || 'node-sitemap-stream-parser';
+	'user-agent': process.env.USER_AGENT || userAgent().toString();
 agentOptions =
 	keepAlive: true
 	gzip: true

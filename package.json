@@ -1,6 +1,6 @@
 {
   "name": "@dataxquare/sitemap-stream-parser",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Get a list of URLs from one or more sitemaps",
   "main": "index.js",
   "keywords": [
@@ -22,7 +22,8 @@
     "async": "^2.6.1",
     "commander": "^3.0.0",
     "got": "^11.8.2",
-    "sax": "^1.2.4"
+    "sax": "^1.2.4",
+    "user-agents": "^1.0.1383"
   },
   "repository": {
     "type": "git",
